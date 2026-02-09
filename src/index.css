@@ -1,0 +1,235 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Property Dealer CRM Design System
+   Modern, professional SaaS dashboard aesthetic
+   All colors in HSL format */
+
+@layer base {
+  :root {
+    /* Dark theme by default for landing page */
+    --background: 220 20% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 20% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 20% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    --border: 220 20% 18%;
+    --input: 220 20% 15%;
+    --ring: 160 84% 39%;
+
+    --radius: 0.75rem;
+
+    /* Custom ApnaCodex tokens */
+    --emerald-glow: 160 84% 39%;
+    --blue-glow: 217 91% 60%;
+    --purple-glow: 270 70% 60%;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(160 84% 39%),
+      hsl(160 84% 30%)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(220 20% 4%) 0%,
+      hsl(220 30% 8%) 50%,
+      hsl(220 20% 4%) 100%
+    );
+    --gradient-card: linear-gradient(
+      135deg,
+      hsl(220 20% 10% / 0.8),
+      hsl(220 20% 6% / 0.6)
+    );
+    --gradient-glass: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.1),
+      hsl(0 0% 100% / 0.05)
+    );
+
+    --shadow-glow-sm: 0 0 20px hsl(160 84% 39% / 0.3);
+    --shadow-glow-md: 0 0 40px hsl(160 84% 39% / 0.4);
+    --shadow-glow-lg: 0 0 60px hsl(160 84% 39% / 0.5);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
+
+    /* Status colors for properties and leads */
+    --status-available: 142 76% 36%;
+    --status-available-foreground: 0 0% 100%;
+    --status-sold: 0 84% 60%;
+    --status-sold-foreground: 0 0% 100%;
+    --status-rented: 262 83% 58%;
+    --status-rented-foreground: 0 0% 100%;
+    --status-negotiating: 38 92% 50%;
+    --status-negotiating-foreground: 0 0% 100%;
+
+    /* Lead status colors */
+    --lead-new: 217 91% 60%;
+    --lead-contacted: 38 92% 50%;
+    --lead-interested: 262 83% 58%;
+    --lead-negotiating: 25 95% 53%;
+    --lead-closed: 142 76% 36%;
+    --lead-lost: 0 84% 60%;
+
+    /* WhatsApp brand color */
+    --whatsapp: 142 70% 45%;
+    --whatsapp-foreground: 0 0% 100%;
+
+    /* Sidebar */
+    --sidebar-background: 220 20% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 20% 15%;
+    --sidebar-ring: 160 84% 39%;
+
+    /* Chart colors */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 262 83% 58%;
+    --chart-5: 0 84% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Glass morphism effects */
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-strong {
+    @apply bg-card/80 backdrop-blur-2xl border border-white/15;
+  }
+
+  /* Glow effects */
+  .glow-emerald {
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  .glow-emerald-md {
+    box-shadow: var(--shadow-glow-md);
+  }
+
+  .glow-emerald-lg {
+    box-shadow: var(--shadow-glow-lg);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  /* Animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px hsl(160 84% 39% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(160 84% 39% / 0.7);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
