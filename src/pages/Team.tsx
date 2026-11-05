@@ -32,15 +32,15 @@ export default function Team() {
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
-  // Fetch leads to calculate metrics
-  const { data: leads } = useQuery({
-    queryKey: ['leads'],
+  // Separate key from Leads page infinite query (['leads']) to avoid cache shape clash
+  const { data: leads = [] } = useQuery({
+    queryKey: ['leads', 'team-metrics'],
     queryFn: () => api.leads.list(),
   });
 
   // Calculate metrics for each rep
   const repsWithMetrics = (salesReps || []).map(rep => {
-    const repLeads = (leads || []).filter(lead => lead.assignedRepId === rep.id);
+    const repLeads = leads.filter(lead => lead.assignedRepId === rep.id);
     const closedLeads = repLeads.filter(lead => lead.status === 'CLOSED');
     
     return {
@@ -65,9 +65,11 @@ export default function Team() {
   const avgConversion = repsWithMetrics.length > 0
     ? Math.round(repsWithMetrics.reduce((sum, r) => sum + (r.conversionRate || 0), 0) / repsWithMetrics.length)
     : 0;
-  const topPerformer = repsWithMetrics.reduce((top, rep) => 
-    (rep.conversionRate || 0) > (top.conversionRate || 0) ? rep : top
-  , repsWithMetrics[0]);
+  const topPerformer = repsWithMetrics.length > 0
+    ? repsWithMetrics.reduce((top, rep) =>
+        (rep.conversionRate || 0) > (top.conversionRate || 0) ? rep : top
+      )
+    : undefined;
 
   return (
     <DashboardLayout title="Sales Team">

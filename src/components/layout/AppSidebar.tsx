@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Kanban,
+  CalendarDays,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ const mainNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Properties", url: "/properties", icon: Building2 },
   { title: "Leads", url: "/leads", icon: Kanban },
+  { title: "Visits", url: "/visits", icon: CalendarDays },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
 ];

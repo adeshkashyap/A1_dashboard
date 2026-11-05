@@ -3,7 +3,7 @@ import { TrendingUp, ArrowRight, Star, Quote } from "lucide-react";
 
 const ResultsSection = () => {
   return (
-    <section className="py-20 lg:py-32 relative overflow-hidden">
+    <section id="results" className="py-20 lg:py-32 relative overflow-hidden scroll-mt-20">
       {/* Background gradient */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] -translate-y-1/2" />
@@ -22,7 +22,7 @@ const ResultsSection = () => {
             <span className="text-sm text-warning">Real Results</span>
           </div>
           
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             See What's Possible in{" "}
             <span className="text-gradient-gold">3 Months</span>
           </h2>

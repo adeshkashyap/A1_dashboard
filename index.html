@@ -1,9 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>EstateFlow — Real Estate CRM UI Demo</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t === "light" || (t === "system" && window.matchMedia("(prefers-color-scheme: light)").matches)) {
+            document.documentElement.classList.remove("dark");
+          } else if (t === "dark" || t === "system" || !t) {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta
       name="description"
       content="EstateFlow is a polished real-estate CRM dashboard UI demo with local dummy data."
@@ -14,8 +29,10 @@
       content="Explore a full dealer CRM interface powered by localStorage — no backend required."
     />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-icon.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="EstateFlow — Real Estate CRM UI Demo" />
+    <meta name="twitter:image" content="/og-icon.png" />
   </head>
 
   <body>

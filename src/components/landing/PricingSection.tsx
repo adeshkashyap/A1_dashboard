@@ -55,7 +55,7 @@ const plans = [
 
 const PricingSection = () => {
   return (
-    <section className="py-20 lg:py-32 relative overflow-hidden bg-card/30" id="pricing">
+    <section id="pricing" className="py-20 lg:py-32 relative overflow-hidden bg-card/30 scroll-mt-20">
       <div className="container relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -63,7 +63,7 @@ const PricingSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             Simple,{" "}
             <span className="text-gradient">Transparent Pricing</span>
           </h2>

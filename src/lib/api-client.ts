@@ -8,6 +8,7 @@ import {
   DEMO_SETTINGS,
   DEMO_SUBSCRIPTION_PLANS,
   DEMO_USER,
+  DEMO_VISITS,
   DEMO_WHATSAPP_METRICS,
   DEMO_WHATSAPP_STATUS,
   computeDemoStats,
@@ -20,6 +21,7 @@ import type {
   ReferralDiscount,
   SalesRep,
   User,
+  Visit,
   WhatsAppMetrics,
   WhatsAppStatus,
 } from "./types";
@@ -32,6 +34,7 @@ export type {
   ReferralDiscount,
   SalesRep,
   User,
+  Visit,
   WhatsAppMetrics,
   WhatsAppStatus,
 };
@@ -47,10 +50,11 @@ const KEYS = {
   settings: "estateflow_settings",
   referrals: "estateflow_referrals",
   whatsapp: "estateflow_whatsapp",
-  seeded: "estateflow_seeded_v2",
+  visits: "estateflow_visits",
+  seeded: "estateflow_seeded_v3",
 } as const;
 
-const SEED_VERSION = "v2";
+const SEED_VERSION = "v3";
 
 function uid(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -74,8 +78,9 @@ function ensureSeed() {
   if (typeof localStorage === "undefined") return;
   if (localStorage.getItem(KEYS.seeded) === SEED_VERSION) return;
 
-  // Drop legacy seed flag so images/data refresh for returning demo users
+  // Drop legacy seed flags so images/data refresh for returning demo users
   localStorage.removeItem("estateflow_seeded");
+  localStorage.removeItem("estateflow_seeded_v2");
 
   write(KEYS.leads, DEMO_LEADS);
   write(KEYS.properties, DEMO_PROPERTIES);
@@ -83,6 +88,7 @@ function ensureSeed() {
   write(KEYS.settings, DEMO_SETTINGS);
   write(KEYS.referrals, DEMO_REFERRALS);
   write(KEYS.whatsapp, DEMO_WHATSAPP_STATUS);
+  write(KEYS.visits, DEMO_VISITS);
   localStorage.setItem(KEYS.seeded, SEED_VERSION);
 }
 
@@ -413,6 +419,66 @@ export const api = {
         ...DEMO_WHATSAPP_METRICS,
         timestamp: new Date().toISOString(),
       }),
+  },
+
+  visits: {
+    list: async (): Promise<Visit[]> => {
+      ensureSeed();
+      const visits = read<Visit[]>(KEYS.visits, DEMO_VISITS);
+      return delay(
+        [...visits].sort(
+          (a, b) =>
+            new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+        )
+      );
+    },
+
+    create: async (data: Partial<Visit>): Promise<Visit> => {
+      ensureSeed();
+      const visits = read<Visit[]>(KEYS.visits, DEMO_VISITS);
+      const nowIso = new Date().toISOString();
+      const visit: Visit = {
+        id: uid("visit"),
+        leadId: data.leadId,
+        propertyId: data.propertyId,
+        buyerName: data.buyerName || "Buyer",
+        propertyTitle: data.propertyTitle || "Property",
+        location: data.location || "",
+        scheduledAt: data.scheduledAt || nowIso,
+        status: data.status || "SCHEDULED",
+        assignedRepId: data.assignedRepId,
+        assignedRepName: data.assignedRepName,
+        notes: data.notes,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+      write(KEYS.visits, [visit, ...visits]);
+      return delay(visit);
+    },
+
+    update: async (id: string, data: Partial<Visit>): Promise<Visit> => {
+      ensureSeed();
+      const visits = read<Visit[]>(KEYS.visits, DEMO_VISITS);
+      const idx = visits.findIndex((v) => v.id === id);
+      if (idx === -1) throw new Error("Visit not found");
+      const updated: Visit = {
+        ...visits[idx],
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      visits[idx] = updated;
+      write(KEYS.visits, visits);
+      return delay(updated);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      ensureSeed();
+      write(
+        KEYS.visits,
+        read<Visit[]>(KEYS.visits, DEMO_VISITS).filter((v) => v.id !== id)
+      );
+      await delay(undefined);
+    },
   },
 
   settings: {

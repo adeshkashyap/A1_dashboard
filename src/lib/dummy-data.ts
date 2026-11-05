@@ -6,6 +6,7 @@ import type {
   ReferralDiscount,
   SalesRep,
   User,
+  Visit,
   WhatsAppMetrics,
   WhatsAppStatus,
 } from "./types";
@@ -79,6 +80,13 @@ export const DEMO_REPS: SalesRep[] = [
 
 const now = Date.now();
 const daysAgo = (d: number) => new Date(now - d * 86400000).toISOString();
+const atDayHour = (dayOffset: number, hour: number) => {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(hour, 0, 0, 0);
+  return d.toISOString();
+};
 
 export const DEMO_LEADS: Lead[] = [
   {
@@ -603,5 +611,125 @@ export const DEMO_SUBSCRIPTION_PLANS = [
     currency: "INR",
     interval: "month",
     features: ["Unlimited leads", "Unlimited team", "Custom integrations"],
+  },
+];
+
+export const DEMO_VISITS: Visit[] = [
+  {
+    id: "visit-1",
+    leadId: "lead-4",
+    propertyId: "prop-1",
+    buyerName: "Meera Joshi",
+    propertyTitle: "Sea View 3BHK Apartment",
+    location: "Bandra West",
+    scheduledAt: atDayHour(0, 11),
+    status: "SCHEDULED",
+    assignedRepId: "rep-1",
+    assignedRepName: "Rahul Mehta",
+    notes: "Prefers afternoon light; bring floor plans.",
+    createdAt: daysAgo(2),
+    updatedAt: daysAgo(1),
+  },
+  {
+    id: "visit-2",
+    leadId: "lead-5",
+    propertyId: "prop-2",
+    buyerName: "Kabir Malhotra",
+    propertyTitle: "Garden 3BHK Residence",
+    location: "Powai",
+    scheduledAt: atDayHour(1, 15),
+    status: "SCHEDULED",
+    assignedRepId: "rep-2",
+    assignedRepName: "Priya Nair",
+    notes: "Couple visit — parking needed.",
+    createdAt: daysAgo(3),
+    updatedAt: daysAgo(1),
+  },
+  {
+    id: "visit-3",
+    leadId: "lead-6",
+    propertyId: "prop-4",
+    buyerName: "Neha Reddy",
+    propertyTitle: "Worli Skyline Penthouse",
+    location: "Worli",
+    scheduledAt: atDayHour(2, 10),
+    status: "SCHEDULED",
+    assignedRepId: "rep-3",
+    assignedRepName: "Amit Sharma",
+    createdAt: daysAgo(1),
+    updatedAt: daysAgo(1),
+  },
+  {
+    id: "visit-4",
+    leadId: "lead-7",
+    propertyId: "prop-3",
+    buyerName: "Arjun Patel",
+    propertyTitle: "Modern 2BHK Metro Homes",
+    location: "Andheri East",
+    scheduledAt: atDayHour(-1, 16),
+    status: "COMPLETED",
+    assignedRepId: "rep-1",
+    assignedRepName: "Rahul Mehta",
+    notes: "Liked layout; waiting on finance.",
+    createdAt: daysAgo(5),
+    updatedAt: daysAgo(1),
+  },
+  {
+    id: "visit-5",
+    leadId: "lead-8",
+    propertyId: "prop-5",
+    buyerName: "Ishita Banerjee",
+    propertyTitle: "Juhu Villa with Pool",
+    location: "Juhu",
+    scheduledAt: atDayHour(-2, 12),
+    status: "COMPLETED",
+    assignedRepId: "rep-2",
+    assignedRepName: "Priya Nair",
+    createdAt: daysAgo(6),
+    updatedAt: daysAgo(2),
+  },
+  {
+    id: "visit-6",
+    leadId: "lead-9",
+    propertyId: "prop-6",
+    buyerName: "Siddharth Rao",
+    propertyTitle: "Compact Studio @ BKC",
+    location: "BKC",
+    scheduledAt: atDayHour(-3, 14),
+    status: "CANCELLED",
+    assignedRepId: "rep-3",
+    assignedRepName: "Amit Sharma",
+    notes: "Buyer rescheduled — travel conflict.",
+    createdAt: daysAgo(7),
+    updatedAt: daysAgo(3),
+  },
+  {
+    id: "visit-7",
+    leadId: "lead-10",
+    propertyId: "prop-2",
+    buyerName: "Pooja Iyer",
+    propertyTitle: "Garden 3BHK Residence",
+    location: "Powai",
+    scheduledAt: atDayHour(3, 11),
+    status: "SCHEDULED",
+    assignedRepId: "rep-1",
+    assignedRepName: "Rahul Mehta",
+    createdAt: daysAgo(0),
+    updatedAt: daysAgo(0),
+  },
+  {
+    id: "visit-8",
+    leadId: "lead-2",
+    propertyId: "prop-3",
+    buyerName: "Ananya Gupta",
+    propertyTitle: "Modern 2BHK Metro Homes",
+    location: "Andheri East",
+    scheduledAt: atDayHour(4, 17),
+    status: "SCHEDULED",
+    assignedRepId: "rep-2",
+    assignedRepName: "Priya Nair",
+    notes: "Evening slot preferred after office.",
+    createdAt: daysAgo(0),
+    updatedAt: daysAgo(0),
   },
 ];

@@ -41,6 +41,7 @@ import {
 import { CreatePropertyModal } from "@/components/properties/CreatePropertyModal";
 import { EditPropertyModal } from "@/components/properties/EditPropertyModal";
 import { DeletePropertyDialog } from "@/components/properties/DeletePropertyDialog";
+import { PropertyDetailSheet } from "@/components/properties/PropertyDetailSheet";
 
 type ViewMode = "grid" | "table";
 
@@ -81,6 +82,7 @@ export default function Properties() {
   const [showCreateProperty, setShowCreateProperty] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [deletingProperty, setDeletingProperty] = useState<Property | null>(null);
+  const [detailProperty, setDetailProperty] = useState<Property | null>(null);
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -225,7 +227,8 @@ export default function Properties() {
             {filteredProperties.map((property) => (
               <Card
                 key={property.id}
-                className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow group"
+                className="overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow group cursor-pointer"
+                onClick={() => setDetailProperty(property)}
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
@@ -242,14 +245,22 @@ export default function Properties() {
                     {property.available ? "Available" : "Sold"}
                   </Badge>
                   <div className="absolute top-3 right-3 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <Button size="icon" variant="secondary" className="h-8 w-8">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-8 w-8"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <MessageCircle className="h-4 w-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="secondary"
                       className="h-8 w-8"
-                      onClick={() => setEditingProperty(property)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingProperty(property);
+                      }}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -329,7 +340,8 @@ export default function Properties() {
                   {filteredProperties.map((property) => (
                     <tr
                       key={property.id}
-                      className="border-b last:border-0 hover:bg-muted/30"
+                      className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
+                      onClick={() => setDetailProperty(property)}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -365,7 +377,7 @@ export default function Properties() {
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {property.location || 'Gurgaon'}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -439,6 +451,12 @@ export default function Properties() {
         property={deletingProperty}
         open={!!deletingProperty}
         onOpenChange={(open) => !open && setDeletingProperty(null)}
+      />
+      <PropertyDetailSheet
+        property={detailProperty}
+        open={!!detailProperty}
+        onOpenChange={(open) => !open && setDetailProperty(null)}
+        onEdit={(p) => setEditingProperty(p)}
       />
     </DashboardLayout>
   );

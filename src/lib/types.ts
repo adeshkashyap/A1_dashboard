@@ -64,6 +64,24 @@ export interface SalesRep {
   conversionRate?: number;
 }
 
+export type VisitStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
+
+export interface Visit {
+  id: string;
+  leadId?: string;
+  propertyId?: string;
+  buyerName: string;
+  propertyTitle: string;
+  location: string;
+  scheduledAt: string;
+  status: VisitStatus;
+  assignedRepId?: string;
+  assignedRepName?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ReferralDiscount {
   id: string;
   code: string;

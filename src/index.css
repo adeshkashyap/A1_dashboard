@@ -1,16 +1,117 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Property Dealer CRM Design System
-   Modern, professional SaaS dashboard aesthetic
-   All colors in HSL format */
+/* EstateFlow design system — light (:root) + dark (.dark)
+   All colors in HSL channels for hsl(var(--token)) */
 
 @layer base {
   :root {
-    /* Dark theme by default for landing page */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 160 84% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 91% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 16% 40%;
+
+    --accent: 160 84% 36%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 84% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    --border: 214 20% 88%;
+    --input: 214 20% 92%;
+    --ring: 160 84% 36%;
+
+    --radius: 0.75rem;
+
+    --emerald-glow: 160 84% 36%;
+    --blue-glow: 217 91% 55%;
+    --purple-glow: 270 70% 55%;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(160 84% 36%),
+      hsl(160 84% 28%)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(210 20% 98%) 0%,
+      hsl(210 30% 96%) 50%,
+      hsl(210 20% 98%) 100%
+    );
+    --gradient-card: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.9),
+      hsl(210 20% 98% / 0.8)
+    );
+    --gradient-glass: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.7),
+      hsl(0 0% 100% / 0.4)
+    );
+
+    --shadow-glow-sm: 0 0 20px hsl(160 84% 36% / 0.2);
+    --shadow-glow-md: 0 0 40px hsl(160 84% 36% / 0.25);
+    --shadow-glow-lg: 0 0 60px hsl(160 84% 36% / 0.3);
+    --shadow-card: 0 8px 32px hsl(222 47% 11% / 0.08);
+
+    --status-available: 142 76% 36%;
+    --status-available-foreground: 0 0% 100%;
+    --status-sold: 0 72% 51%;
+    --status-sold-foreground: 0 0% 100%;
+    --status-rented: 262 83% 58%;
+    --status-rented-foreground: 0 0% 100%;
+    --status-negotiating: 38 92% 45%;
+    --status-negotiating-foreground: 0 0% 100%;
+
+    --lead-new: 217 91% 55%;
+    --lead-contacted: 38 92% 45%;
+    --lead-interested: 262 83% 55%;
+    --lead-negotiating: 25 95% 50%;
+    --lead-closed: 142 76% 36%;
+    --lead-lost: 0 72% 51%;
+
+    --whatsapp: 142 70% 40%;
+    --whatsapp-foreground: 0 0% 100%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 160 84% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 160 84% 36%;
+
+    --chart-1: 217 91% 55%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 45%;
+    --chart-4: 262 83% 55%;
+    --chart-5: 0 72% 51%;
+  }
+
+  .dark {
     --background: 220 20% 4%;
     --foreground: 0 0% 98%;
 
@@ -45,9 +146,6 @@
     --input: 220 20% 15%;
     --ring: 160 84% 39%;
 
-    --radius: 0.75rem;
-
-    /* Custom EstateFlow tokens */
     --emerald-glow: 160 84% 39%;
     --blue-glow: 217 91% 60%;
     --purple-glow: 270 70% 60%;
@@ -79,7 +177,6 @@
     --shadow-glow-lg: 0 0 60px hsl(160 84% 39% / 0.5);
     --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
 
-    /* Status colors for properties and leads */
     --status-available: 142 76% 36%;
     --status-available-foreground: 0 0% 100%;
     --status-sold: 0 84% 60%;
@@ -89,7 +186,6 @@
     --status-negotiating: 38 92% 50%;
     --status-negotiating-foreground: 0 0% 100%;
 
-    /* Lead status colors */
     --lead-new: 217 91% 60%;
     --lead-contacted: 38 92% 50%;
     --lead-interested: 262 83% 58%;
@@ -97,11 +193,9 @@
     --lead-closed: 142 76% 36%;
     --lead-lost: 0 84% 60%;
 
-    /* WhatsApp brand color */
     --whatsapp: 142 70% 45%;
     --whatsapp-foreground: 0 0% 100%;
 
-    /* Sidebar */
     --sidebar-background: 220 20% 6%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 160 84% 39%;
@@ -111,7 +205,6 @@
     --sidebar-border: 220 20% 15%;
     --sidebar-ring: 160 84% 39%;
 
-    /* Chart colors */
     --chart-1: 217 91% 60%;
     --chart-2: 142 76% 36%;
     --chart-3: 38 92% 50%;
@@ -130,22 +223,32 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: "Inter", sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: "DM Sans", system-ui, sans-serif;
+  }
+
+  .font-display {
+    font-family: "Fraunces", Georgia, serif;
   }
 }
 
 @layer utilities {
-  /* Glass morphism effects */
   .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-white/10;
+    @apply bg-card/70 backdrop-blur-xl border border-border/80;
   }
 
   .glass-strong {
-    @apply bg-card/80 backdrop-blur-2xl border border-white/15;
+    @apply bg-card/90 backdrop-blur-2xl border border-border;
   }
 
-  /* Glow effects */
+  .dark .glass {
+    @apply bg-card/60 border-white/10;
+  }
+
+  .dark .glass-strong {
+    @apply bg-card/80 border-white/15;
+  }
+
   .glow-emerald {
     box-shadow: var(--shadow-glow-sm);
   }
@@ -158,12 +261,10 @@
     box-shadow: var(--shadow-glow-lg);
   }
 
-  /* Gradient text */
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
 
-  /* Animations */
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -177,7 +278,6 @@
     animation: gradient-shift 8s ease infinite;
   }
 
-  /* Scrollbar styling */
   .scrollbar-thin {
     scrollbar-width: thin;
   }
@@ -201,7 +301,6 @@
   }
 }
 
-/* Keyframe animations */
 @keyframes float {
   0%,
   100% {
@@ -215,10 +314,10 @@
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 20px hsl(160 84% 39% / 0.4);
+    box-shadow: 0 0 12px hsl(160 84% 39% / 0.18);
   }
   50% {
-    box-shadow: 0 0 40px hsl(160 84% 39% / 0.7);
+    box-shadow: 0 0 20px hsl(160 84% 39% / 0.28);
   }
 }
 

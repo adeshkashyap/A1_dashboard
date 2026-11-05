@@ -2,8 +2,10 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Search, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { NotificationsPopover } from "./NotificationsPopover";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -45,13 +47,8 @@ export function DashboardLayout({ children, title, actions }: DashboardLayoutPro
                 <span className="hidden sm:inline">Add New</span>
               </Button>
 
-              {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-                  3
-                </span>
-              </Button>
+              <ThemeToggle />
+              <NotificationsPopover />
 
               {actions}
             </div>

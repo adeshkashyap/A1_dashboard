@@ -70,7 +70,7 @@ const features = [
 
 const FeaturesGrid = () => {
   return (
-    <section className="py-20 lg:py-32 relative overflow-hidden bg-card/30">
+    <section id="features" className="py-20 lg:py-32 relative overflow-hidden bg-card/30 scroll-mt-20">
       <div className="container relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -78,7 +78,7 @@ const FeaturesGrid = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             Everything You Need to{" "}
             <span className="text-gradient">Close More Deals</span>
           </h2>
