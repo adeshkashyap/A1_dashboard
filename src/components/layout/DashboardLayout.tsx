@@ -19,21 +19,23 @@ export function DashboardLayout({ children, title, actions }: DashboardLayoutPro
         
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Top Header */}
-          <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="lg:hidden" />
+          <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between gap-3 border-b bg-card px-3 sm:px-4 lg:px-6 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <SidebarTrigger className="lg:hidden shrink-0" />
               {title && (
-                <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+                <h1 className="text-lg sm:text-xl font-semibold text-foreground truncate min-w-0">
+                  {title}
+                </h1>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Search */}
               <div className="hidden md:flex relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search properties, clients..."
-                  className="w-64 pl-9 bg-secondary border-0"
+                  className="w-48 lg:w-64 pl-9 bg-muted border-0"
                 />
               </div>
 

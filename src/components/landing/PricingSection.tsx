@@ -76,11 +76,11 @@ const PricingSection = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-warning/20 to-warning/10 border border-warning/30 px-6 py-3 rounded-full"
+            className="inline-flex flex-wrap items-center justify-center gap-2 bg-gradient-to-r from-warning/20 to-warning/10 border border-warning/30 px-4 sm:px-6 py-3 rounded-full max-w-full text-center"
           >
-            <Sparkles className="w-5 h-5 text-warning" />
-            <span className="font-bold text-warning">
-              🎉 50% OFF first 3 months with code POC2026
+            <Sparkles className="w-5 h-5 text-warning shrink-0" />
+            <span className="font-bold text-warning text-sm sm:text-base">
+              50% OFF first 3 months with code POC2026
             </span>
           </motion.div>
         </motion.div>
@@ -134,17 +134,17 @@ const PricingSection = () => {
                 ))}
               </ul>
               
-              <Link to="/signup" className="block">
+              <Link to="/auth" className="block">
                 <Button 
                   className={`w-full py-6 text-lg ${plan.popular ? "glow-emerald" : ""}`}
                   variant={plan.popular ? "default" : "outline"}
                 >
-                  Start 30-Day FREE Trial
+                  Enter Demo Dashboard
                 </Button>
               </Link>
               
               <p className="text-center text-xs text-muted-foreground mt-4">
-                No credit card required
+                Local demo — no signup required
               </p>
             </motion.div>
           ))}

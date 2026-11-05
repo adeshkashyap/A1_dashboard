@@ -150,7 +150,7 @@ export default function Onboarding() {
           key: import.meta.env.VITE_RAZORPAY_KEY || "rzp_test_123",
           amount: plan.price * 100,
           currency: "INR",
-          name: "ApnaCodex",
+          name: "EstateFlow",
           description: `${plan.planName} Subscription`,
           order_id: orderId,
           handler: function (response: any) {

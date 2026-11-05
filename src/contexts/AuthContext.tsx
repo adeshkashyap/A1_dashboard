@@ -1,128 +1,87 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import api, { User } from "@/lib/api-client";
+import { DEMO_USER } from "@/lib/api-client";
+import type { User } from "@/lib/api-client";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  signInAsDemo: () => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
-  requestOtp: (email: string, isSignup: boolean) => Promise<{ error: Error | null }>;
-  verifyOtp: (email: string, otp: string, isSignup: boolean, extraData?: Record<string, unknown>) => Promise<{ error: Error | null }>;
-  verifyOtpSMS: (data: { phone: string; otp: string; name: string; password?: string; email: string }) => Promise<{ error: Error | null }>;
-  validateOtp: (identifier: string, otp: string, isPhone?: boolean) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   setUser: (user: User | null, persist?: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_TOKEN_KEY = "auth_token";
+const USER_DATA_KEY = "user_data";
+
+function persistDemoSession(user: User = DEMO_USER) {
+  localStorage.setItem(AUTH_TOKEN_KEY, "demo-token");
+  localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('user_data');
-    
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const userData = localStorage.getItem(USER_DATA_KEY);
+
     if (token && userData) {
       try {
         setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
+      } catch {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(USER_DATA_KEY);
       }
     }
-    
+
     setLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signInAsDemo = async () => {
     try {
-      const response = await api.auth.login(email, password);
-      localStorage.setItem('auth_token', response.accessToken);
-      localStorage.setItem('user_data', JSON.stringify(response.dealer));
-      setUser(response.dealer);
+      persistDemoSession(DEMO_USER);
+      setUser(DEMO_USER);
       return { error: null };
     } catch (error) {
-      return { error: error instanceof Error ? error : new Error('Login failed') };
+      return { error: error instanceof Error ? error : new Error("Demo login failed") };
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
-    try {
-      const response = await api.auth.signup(email, password, fullName, phone);
-      localStorage.setItem('auth_token', response.accessToken);
-      localStorage.setItem('user_data', JSON.stringify(response.dealer));
-      setUser(response.dealer);
-      return { error: null };
-    } catch (error) {
-      return { error: error instanceof Error ? error : new Error('Signup failed') };
-    }
-  };
-
-  const requestOtp = async (email: string, isSignup: boolean) => {
-    try {
-      await api.auth.requestOtp(email, isSignup);
-      return { error: null };
-    } catch (error) {
-      return { error: error instanceof Error ? error : new Error('OTP request failed') };
-    }
-  };
-
-  const verifyOtp = async (email: string, otp: string, isSignup: boolean, extraData?: Record<string, unknown>) => {
-    try {
-      const response = await api.auth.verifyOtp(email, otp, isSignup, extraData);
-      localStorage.setItem('auth_token', response.accessToken);
-      localStorage.setItem('user_data', JSON.stringify(response.dealer));
-      setUser(response.dealer);
-      return { error: null };
-    } catch (error) {
-      return { error: error instanceof Error ? error : new Error('OTP verification failed') };
-    }
-  };
-
-  const verifyOtpSMS = async (data: { phone: string; otp: string; name: string; password?: string; email: string }) => {
-    try {
-      const response = await api.auth.verifyOtpSMS(data);
-      localStorage.setItem('auth_token', response.accessToken);
-      localStorage.setItem('user_data', JSON.stringify(response.dealer));
-      setUser(response.dealer);
-      return { error: null };
-    } catch (error) {
-      return { error: error instanceof Error ? error : new Error('SMS OTP verification failed') };
-    }
-  };
-
-  const validateOtp = async (identifier: string, otp: string, isPhone: boolean = false) => {
-    try {
-      await api.auth.validateOtp(identifier, otp, isPhone);
-      return { error: null };
-    } catch (error) {
-      return { error: error instanceof Error ? error : new Error('OTP validation failed') };
-    }
-  };
+  const signIn = async (_email: string, _password: string) => signInAsDemo();
 
   const handleSetUser = (newUser: User | null, persist: boolean = true) => {
     setUser(newUser);
     if (persist) {
       if (newUser) {
-        localStorage.setItem('user_data', JSON.stringify(newUser));
+        persistDemoSession(newUser);
       } else {
-        localStorage.removeItem('user_data');
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(USER_DATA_KEY);
       }
     }
   };
 
   const signOut = async () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_DATA_KEY);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, requestOtp, verifyOtp, verifyOtpSMS, validateOtp, signOut, setUser: handleSetUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signInAsDemo,
+        signIn,
+        signOut,
+        setUser: handleSetUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

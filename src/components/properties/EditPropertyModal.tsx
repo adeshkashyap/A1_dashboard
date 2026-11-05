@@ -62,19 +62,22 @@ export function EditPropertyModal({ property, open, onOpenChange }: EditProperty
         possession: property.possession || "",
         description: property.description || "",
       });
-      setImagePreview(property.image || null);
+      setImagePreview(property.image || property.images?.[0] || null);
     }
   }, [property]);
 
   const updatePropertyMutation = useMutation({
     mutationFn: async (data: typeof formData & { image?: string }) => {
       if (!property) return;
-      
-      const propertyData = {
-        name: data.title,
-        price: parseFloat(data.price),
+
+      return api.properties.update(property.id, {
+        title: data.title,
+        price: parseFloat(data.price) || 0,
         category: data.category,
         image: data.image || property.image,
+        images: data.image
+          ? [data.image]
+          : property.images || (property.image ? [property.image] : []),
         available: property.available,
         bhk: data.bhk ? parseInt(data.bhk) : undefined,
         sqft: data.sqft ? parseFloat(data.sqft) : undefined,
@@ -82,19 +85,7 @@ export function EditPropertyModal({ property, open, onOpenChange }: EditProperty
         reraNo: data.reraNo,
         possession: data.possession,
         description: data.description,
-      };
-
-      const response = await fetch(`http://localhost:3001/api/inventory/${property.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(propertyData),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to update property");
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -133,7 +124,7 @@ export function EditPropertyModal({ property, open, onOpenChange }: EditProperty
 
   const removeImage = () => {
     setImageFile(null);
-    setImagePreview(property?.image || null);
+    setImagePreview(property?.image || property?.images?.[0] || null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

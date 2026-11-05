@@ -26,16 +26,7 @@ export function DeletePropertyDialog({ property, open, onOpenChange }: DeletePro
   const deletePropertyMutation = useMutation({
     mutationFn: async () => {
       if (!property) return;
-      
-      const response = await fetch(`http://localhost:3001/api/inventory/${property.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete property");
-      }
-
-      return response.json();
+      return api.properties.delete(property.id);
     },
     onSuccess: () => {
       toast({

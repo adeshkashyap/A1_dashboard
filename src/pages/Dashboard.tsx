@@ -147,23 +147,23 @@ export default function Dashboard() {
                     {leads.map((lead) => (
                       <div
                         key={lead.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                        className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer min-w-0"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold">{lead.buyerName}</span>
-                            <Badge variant="outline" className="text-xs">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 min-w-0">
+                            <span className="font-semibold truncate">{lead.buyerName}</span>
+                            <Badge variant="outline" className="text-xs shrink-0">
                               {lead.pdId}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground line-clamp-1">
                             {lead.requirements}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
                             Budget: {formatCurrency(lead.budget)}
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <Badge
                             variant={
                               lead.status === 'CLOSED' ? 'default' :
@@ -174,7 +174,7 @@ export default function Dashboard() {
                           >
                             {lead.status}
                           </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                             {lead.createdAt && formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true })}
                           </p>
                         </div>

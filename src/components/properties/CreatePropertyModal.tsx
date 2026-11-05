@@ -49,11 +49,12 @@ export function CreatePropertyModal({ open, onOpenChange }: CreatePropertyModalP
 
   const createPropertyMutation = useMutation({
     mutationFn: async (data: typeof formData & { image?: string }) => {
-      const propertyData = {
-        name: data.title,
-        price: parseFloat(data.price),
+      return api.properties.create({
+        title: data.title,
+        price: parseFloat(data.price) || 0,
         category: data.category,
         image: data.image,
+        images: data.image ? [data.image] : [],
         available: true,
         bhk: data.bhk ? parseInt(data.bhk) : undefined,
         sqft: data.sqft ? parseFloat(data.sqft) : undefined,
@@ -61,19 +62,7 @@ export function CreatePropertyModal({ open, onOpenChange }: CreatePropertyModalP
         reraNo: data.reraNo,
         possession: data.possession,
         description: data.description,
-      };
-
-      const response = await fetch("http://localhost:3001/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(propertyData),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create property");
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({

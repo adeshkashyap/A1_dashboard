@@ -1,784 +1,469 @@
-// GharBot API Client - Connects to Mom's Kitchen Backend
-// PRESERVES all backend endpoints - only transforms display layer
+// EstateFlow local data store — localStorage + seeded dummy data (no backend)
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+import {
+  DEMO_LEADS,
+  DEMO_PROPERTIES,
+  DEMO_REFERRALS,
+  DEMO_REPS,
+  DEMO_SETTINGS,
+  DEMO_SUBSCRIPTION_PLANS,
+  DEMO_USER,
+  DEMO_WHATSAPP_METRICS,
+  DEMO_WHATSAPP_STATUS,
+  computeDemoStats,
+} from "./dummy-data";
+import type {
+  AgencySettings,
+  DashboardStats,
+  Lead,
+  Property,
+  ReferralDiscount,
+  SalesRep,
+  User,
+  WhatsAppMetrics,
+  WhatsAppStatus,
+} from "./types";
 
-
-
-// ============================================
-// TYPE DEFINITIONS (Display Layer)
-// ============================================
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  companyProfile?: {
-    companyName?: string;
-    companyType?: string;
-    botName?: string;
-    botTone?: string;
-    address?: string;
-  };
-  subscription?: {
-    status: 'active' | 'inactive' | 'past_due' | 'incomplete';
-    planId: string;
-    expiresAt?: string;
-    currentPeriodEnd?: string;
-  };
-}
-
-export interface Lead {
-  id: string;
-  pdId: string; // PD-1234 (transformed from MK-1234)
-  buyerName: string;
-  buyerPhone: string;
-  requirements: string; // "3BHK Sector 49"
-  budget: number;
-  status: 'NEW' | 'QUALIFIED' | 'VISIT' | 'CLOSED' | 'LOST';
-  location: string;
-  assignedRepId?: string;
-  assignedRep?: SalesRep;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Property {
-  id: string;
-  title: string; // "3BHK Luxury Apartment"
-  bhk?: number;
-  sqft?: number;
-  price: number;
-  location?: string;
-  category: string; // "2BHK", "3BHK", "Villa"
-  reraNo?: string;
-  amenities?: string | string[];
-  images?: string[];
-  image?: string; // Backward compatibility - first image
-  available: boolean;
-  description?: string;
-  possession?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface SalesRep {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  active: boolean;
-  commission?: number;
-  monthlyTarget?: number;
-  leadsHandled?: number;
-  conversionRate?: number;
-}
-
-export interface ReferralDiscount {
-  id: string;
-  code: string;
-  discount: number;
-  type: 'percentage' | 'fixed';
-  active: boolean;
-  usageLimit: number;
-  usedCount: number;
-  expiresAt?: string;
-}
-
-export interface AgencySettings {
-  name: string;
-  phone: string;
-  address: string;
-  lat: number;
-  lng: number;
-  radius: number; // km
-  logo?: string;
-}
-
-export interface WhatsAppStatus {
-  connected: boolean;
-  connecting?: boolean;
-  state?: string;
-  status: string;
-  qrCode?: string;
-  lastMessageAt?: string;
-  me?: string;
-}
-
-export interface DashboardStats {
-  leadsToday: number;
-  pipelineValue: number;
-  activeGroups: number;
-  conversionRate: number;
-  propertiesLive: number;
-  topRep?: {
-    name: string;
-    conversionRate: number;
-  };
-  whatsappStatus: WhatsAppStatus;
-}
-
-export interface WhatsAppMetrics {
-  instances: {
-    total: number;
-    active: number;
-    inactive: number;
-  };
-  queue: {
-    waiting: number;
-    active: number;
-    completed: number;
-    failed: number;
-  };
-  timestamp: string;
-}
-
-// ============================================
-// HELPERS
-// ============================================
-
-const getAuthHeaders = (extraHeaders: Record<string, string> = {}) => {
-  const token = localStorage.getItem('auth_token');
-  if (!token) return extraHeaders;
-  
-  return {
-    ...extraHeaders,
-    'Authorization': `Bearer ${token}`
-  };
+export type {
+  AgencySettings,
+  DashboardStats,
+  Lead,
+  Property,
+  ReferralDiscount,
+  SalesRep,
+  User,
+  WhatsAppMetrics,
+  WhatsAppStatus,
 };
 
 // ============================================
-// RESPONSE TRANSFORMERS
+// STORAGE HELPERS
 // ============================================
 
-// Transform backend Order → Frontend Lead
-function transformOrderToLead(order: {
-  id: string;
-  shortId?: string;
-  customerName: string;
-  customerPhone: string;
-  items: string;
-  amount: number;
-  status: string;
-  address: string;
-  assignedBoyId?: string;
-  assignedBoy?: {
-    id: string;
-    name: string;
-    phone: string;
-    email?: string;
-    active: boolean;
-  };
-  createdAt: string;
-  updatedAt: string;
-}): Lead {
-  const statusMap: Record<string, Lead['status']> = {
-    'pending': 'NEW',
-    'confirmed': 'QUALIFIED',
-    'shipped': 'VISIT',
-    'delivered': 'CLOSED',
-    'cancelled': 'LOST'
-  };
+const KEYS = {
+  leads: "estateflow_leads",
+  properties: "estateflow_properties",
+  reps: "estateflow_reps",
+  settings: "estateflow_settings",
+  referrals: "estateflow_referrals",
+  whatsapp: "estateflow_whatsapp",
+  seeded: "estateflow_seeded_v2",
+} as const;
 
-  return {
-    id: order.id,
-    pdId: order.shortId?.replace('MK-', 'PD-') || `PD-${order.id.slice(-4)}`,
-    buyerName: order.customerName,
-    buyerPhone: order.customerPhone,
-    requirements: order.items,
-    budget: order.amount,
-    status: statusMap[order.status] || 'NEW',
-    location: order.address,
-    assignedRepId: order.assignedBoyId,
-    assignedRep: order.assignedBoy ? transformChefToRep(order.assignedBoy) : undefined,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt
-  };
+const SEED_VERSION = "v2";
+
+function uid(prefix: string) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-// Transform backend Property → Frontend Property (now mostly pass-through)
-function transformInventoryToProperty(item: {
-  id: string;
-  title?: string;
-  name?: string;
-  bhk?: number;
-  sqft?: number;
-  price: number;
-  location?: string;
-  category: string;
-  reraNo?: string;
-  amenities?: string | string[];
-  images?: string | string[];
-  image?: string;
-  available: boolean;
-  description?: string;
-  possession?: string;
-  createdAt: string;
-  updatedAt: string;
-}): Property {
-  // Backend now returns proper GharBot schema, just ensure compatibility
-  return {
-    id: item.id,
-    title: item.title || item.name || '',
-    bhk: item.bhk,
-    sqft: item.sqft,
-    price: item.price,
-    location: item.location,
-    category: item.category,
-    reraNo: item.reraNo,
-    amenities: item.amenities,
-    images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : [],
-    image: item.image,
-    available: item.available,
-    description: item.description,
-    possession: item.possession,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt
-  };
+function read<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
 }
 
-// Transform backend Chef → Frontend SalesRep
-function transformChefToRep(chef: {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  active: boolean;
-}): SalesRep {
-  return {
-    id: chef.id,
-    name: chef.name,
-    phone: chef.phone,
-    email: chef.email,
-    active: chef.active,
-    commission: 0,
-    monthlyTarget: 100,
-    leadsHandled: 0,
-    conversionRate: 0
-  };
+function write<T>(key: string, value: T) {
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
-// Transform backend Coupon → Frontend ReferralDiscount
-function transformCouponToReferral(coupon: {
-  id: string;
-  code: string;
-  discount: number;
-  type: 'percentage' | 'fixed';
-  active: boolean;
-  usageLimit: number;
-  usedCount: number;
-  expiresAt?: string;
-}): ReferralDiscount {
-  return {
-    id: coupon.id,
-    code: coupon.code,
-    discount: coupon.discount,
-    type: coupon.type,
-    active: coupon.active,
-    usageLimit: coupon.usageLimit,
-    usedCount: coupon.usedCount,
-    expiresAt: coupon.expiresAt
-  };
+function ensureSeed() {
+  if (typeof localStorage === "undefined") return;
+  if (localStorage.getItem(KEYS.seeded) === SEED_VERSION) return;
+
+  // Drop legacy seed flag so images/data refresh for returning demo users
+  localStorage.removeItem("estateflow_seeded");
+
+  write(KEYS.leads, DEMO_LEADS);
+  write(KEYS.properties, DEMO_PROPERTIES);
+  write(KEYS.reps, DEMO_REPS);
+  write(KEYS.settings, DEMO_SETTINGS);
+  write(KEYS.referrals, DEMO_REFERRALS);
+  write(KEYS.whatsapp, DEMO_WHATSAPP_STATUS);
+  localStorage.setItem(KEYS.seeded, SEED_VERSION);
 }
 
-// Transform backend stats → Frontend dashboard stats
-function transformStats(stats: {
-  ordersToday?: number;
-  totalPendingAmount?: number;
-  readyForDelivery?: number;
-  whatsappStatus?: WhatsAppStatus;
-}): DashboardStats {
-  return {
-    leadsToday: stats.ordersToday || 0,
-    pipelineValue: stats.totalPendingAmount || 0,
-    activeGroups: stats.readyForDelivery || 0,
-    conversionRate: 68,
-    propertiesLive: 47,
-    topRep: {
-      name: 'Amit Sharma',
-      conversionRate: 78
-    },
-    whatsappStatus: stats.whatsappStatus || { connected: false, status: 'DISCONNECTED' }
-  };
+function withRep(lead: Lead, reps: SalesRep[]): Lead {
+  if (!lead.assignedRepId) return { ...lead, assignedRep: undefined };
+  const rep = reps.find((r) => r.id === lead.assignedRepId);
+  return { ...lead, assignedRep: rep };
+}
+
+function delay<T>(value: T, ms = 120): Promise<T> {
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
 
 // ============================================
-// API CLIENT
+// LOCAL API CLIENT
 // ============================================
 
 export const api = {
-  // ============================================
-  // AUTHENTICATION (Preserved)
-  // ============================================
   auth: {
-    requestOtp: async (email: string, isSignup: boolean): Promise<{ success: boolean; message?: string }> => {
-      const endpoint = isSignup ? '/api/auth/signup/request-otp' : '/api/auth/login/request-otp';
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to request OTP');
-      }
-      
-      return response.json();
-    },
+    requestOtp: async (): Promise<{ success: boolean; message?: string }> =>
+      delay({ success: true, message: "Demo mode — OTP skipped" }),
 
-    verifyOtp: async (email: string, otp: string, isSignup: boolean, extraData?: Record<string, unknown>): Promise<{ accessToken: string; dealer: User }> => {
-      const endpoint = isSignup ? '/api/auth/signup/verify-otp' : '/api/auth/login/verify-otp';
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, ...extraData })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Invalid or expired OTP');
-      }
-      
-      return response.json();
-    },
+    verifyOtp: async (): Promise<{ accessToken: string; dealer: User }> =>
+      delay({ accessToken: "demo-token", dealer: DEMO_USER }),
 
-    login: async (email: string, password?: string): Promise<{ accessToken: string; dealer: User }> => {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Login failed');
-      }
-      return response.json();
-    },
+    login: async (): Promise<{ accessToken: string; dealer: User }> =>
+      delay({ accessToken: "demo-token", dealer: DEMO_USER }),
 
-    signup: async (email: string, password: string, name: string, phone?: string): Promise<{ success: boolean; message?: string }> => {
-      const response = await fetch(`${API_BASE}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, phone })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Signup failed');
-      }
-      return response.json();
-    },
+    signup: async (): Promise<{ success: boolean; message?: string }> =>
+      delay({ success: true, message: "Demo mode — account ready" }),
 
-    validateOtp: async (identifier: string, otp: string, isPhone: boolean): Promise<{ isValid: boolean }> => {
-      const response = await fetch(`${API_BASE}/api/auth/validate-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, otp, isPhone })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Invalid or expired OTP');
-      }
-      return response.json();
-    },
+    validateOtp: async (): Promise<{ isValid: boolean }> =>
+      delay({ isValid: true }),
 
-    verifyPhoneEmail: async (userJsonUrl: string): Promise<{ success: boolean; dealer: User }> => {
-      const response = await fetch(`${API_BASE}/api/auth/verify-phone-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_json_url: userJsonUrl })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Phone verification failed');
-      }
-      return response.json();
-    },
+    verifyPhoneEmail: async (): Promise<{ success: boolean; dealer: User }> =>
+      delay({ success: true, dealer: DEMO_USER }),
 
-    requestOtpSMS: async (phone: string): Promise<{ success: boolean; message?: string; error?: string }> => {
-      const response = await fetch(`${API_BASE}/api/auth/signup/request-otp-sms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send SMS');
-      }
-      
-      return response.json();
-    },
+    requestOtpSMS: async (): Promise<{
+      success: boolean;
+      message?: string;
+      error?: string;
+    }> => delay({ success: true, message: "Demo mode — SMS skipped" }),
 
-    verifyOtpSMS: async (data: Record<string, unknown>): Promise<{ accessToken: string; dealer: User }> => {
-      const response = await fetch(`${API_BASE}/api/auth/signup/verify-otp-sms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'OTP verification failed');
-      }
-      
-      return response.json();
-    }
+    verifyOtpSMS: async (): Promise<{ accessToken: string; dealer: User }> =>
+      delay({ accessToken: "demo-token", dealer: DEMO_USER }),
   },
 
-  // ============================================
-  // SUBSCRIPTION & BILLING (New)
-  // ============================================
   subscription: {
-    listPlans: async (): Promise<any[]> => {
-      const response = await fetch(`${API_BASE}/api/subscription/plans`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
-    },
+    listPlans: async () => delay([...DEMO_SUBSCRIPTION_PLANS]),
 
-    getStatus: async (): Promise<{ status: string; plan?: { id: string; name: string } }> => {
-      const response = await fetch(`${API_BASE}/api/subscription/status`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
-    },
+    getStatus: async () =>
+      delay({
+        status: "active",
+        plan: { id: "pro", name: "Pro" },
+      }),
 
-    createCheckout: async (planId: string, gateway: 'razorpay' | 'stripe'): Promise<{ success?: boolean; subscription?: any; gateway: string; orderId?: string; checkoutUrl?: string }> => {
-      const response = await fetch(`${API_BASE}/api/subscription/create-checkout`, {
-        method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ planId, gateway })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to initiate checkout');
-      }
-      
-      return response.json();
-    },
+    createCheckout: async (planId: string, gateway: "razorpay" | "stripe") =>
+      delay({
+        success: true,
+        gateway,
+        subscription: { planId, status: "active" },
+      }),
 
-    getInvoices: async (): Promise<any[]> => {
-      const response = await fetch(`${API_BASE}/api/subscription/invoices`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
-    }
+    getInvoices: async () => delay([]),
   },
 
-  // ============================================
-  // LEADS (Backend: Orders)
-  // ============================================
   leads: {
-    list: async (page = 1, limit = 20): Promise<Lead[]> => {
-      const response = await fetch(`${API_BASE}/api/orders?page=${page}&limit=${limit}`, {
-        headers: getAuthHeaders()
-      });
-      const orders = await response.json();
-      return orders.map(transformOrderToLead);
+    list: async (_page = 1, _limit = 20): Promise<Lead[]> => {
+      ensureSeed();
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const leads = read<Lead[]>(KEYS.leads, DEMO_LEADS).map((l) =>
+        withRep(l, reps)
+      );
+      return delay(leads);
+    },
+
+    create: async (
+      data: Partial<Lead> & {
+        buyerName?: string;
+        buyerPhone?: string;
+        requirements?: string;
+        budget?: number;
+        location?: string;
+      }
+    ): Promise<Lead> => {
+      ensureSeed();
+      const leads = read<Lead[]>(KEYS.leads, DEMO_LEADS);
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const now = new Date().toISOString();
+      const lead: Lead = {
+        id: uid("lead"),
+        pdId: `PD-${1000 + leads.length + 1}`,
+        buyerName: data.buyerName || "New Buyer",
+        buyerPhone: data.buyerPhone || "",
+        requirements: data.requirements || "",
+        budget: data.budget ?? 0,
+        status: data.status || "NEW",
+        location: data.location || "",
+        assignedRepId: data.assignedRepId,
+        createdAt: now,
+        updatedAt: now,
+      };
+      const next = [lead, ...leads];
+      write(KEYS.leads, next);
+      return delay(withRep(lead, reps));
     },
 
     update: async (id: string, data: Partial<Lead>): Promise<Lead> => {
-      // Reverse transform: Lead status → Order status
-      const statusMap: Record<Lead['status'], string> = {
-        'NEW': 'pending',
-        'QUALIFIED': 'confirmed',
-        'VISIT': 'shipped',
-        'CLOSED': 'delivered',
-        'LOST': 'cancelled'
+      ensureSeed();
+      const leads = read<Lead[]>(KEYS.leads, DEMO_LEADS);
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const idx = leads.findIndex((l) => l.id === id);
+      if (idx === -1) throw new Error("Lead not found");
+      const updated: Lead = {
+        ...leads[idx],
+        ...data,
+        updatedAt: new Date().toISOString(),
       };
+      leads[idx] = updated;
+      write(KEYS.leads, leads);
+      return delay(withRep(updated, reps));
+    },
 
-      const backendData: Record<string, unknown> = {};
-      if (data.status) backendData.status = statusMap[data.status];
-      if (data.buyerName) backendData.customerName = data.buyerName;
-      if (data.buyerPhone) backendData.customerPhone = data.buyerPhone;
-      if (data.location) backendData.address = data.location;
-      if (data.assignedRepId) backendData.assignedBoyId = data.assignedRepId;
-
-      const response = await fetch(`${API_BASE}/api/orders/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(backendData)
-      });
-
-      const order = await response.json();
-      return transformOrderToLead(order);
-    }
+    delete: async (id: string): Promise<void> => {
+      ensureSeed();
+      const leads = read<Lead[]>(KEYS.leads, DEMO_LEADS).filter(
+        (l) => l.id !== id
+      );
+      write(KEYS.leads, leads);
+      await delay(undefined);
+    },
   },
 
-  // ============================================
-  // PROPERTIES (Backend: Inventory)
-  // ============================================
   properties: {
-    list: async (page = 1, limit = 20): Promise<Property[]> => {
-      const response = await fetch(`${API_BASE}/api/inventory?page=${page}&limit=${limit}`, {
-        headers: getAuthHeaders()
-      });
-      const inventory = await response.json();
-      return inventory.map(transformInventoryToProperty);
+    list: async (_page = 1, _limit = 20): Promise<Property[]> => {
+      ensureSeed();
+      return delay(read<Property[]>(KEYS.properties, DEMO_PROPERTIES));
     },
 
     create: async (data: Partial<Property>): Promise<Property> => {
-      // Transform Property → InventoryItem
-      const backendData = {
-        name: data.title,
-        price: data.price,
-        category: data.category || `${data.bhk}BHK`,
-        image: data.images?.[0],
-        available: data.available ?? true
+      ensureSeed();
+      const properties = read<Property[]>(KEYS.properties, DEMO_PROPERTIES);
+      const now = new Date().toISOString();
+      const property: Property = {
+        id: uid("prop"),
+        title: data.title || "Untitled Property",
+        bhk: data.bhk,
+        sqft: data.sqft,
+        price: data.price ?? 0,
+        location: data.location,
+        category: data.category || (data.bhk ? `${data.bhk}BHK` : "Other"),
+        reraNo: data.reraNo,
+        amenities: data.amenities,
+        images: data.images || (data.image ? [data.image] : []),
+        image: data.image || data.images?.[0],
+        available: data.available ?? true,
+        description: data.description,
+        possession: data.possession,
+        createdAt: now,
+        updatedAt: now,
       };
-
-      const response = await fetch(`${API_BASE}/api/inventory`, {
-        method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(backendData)
-      });
-
-      const item = await response.json();
-      return transformInventoryToProperty(item);
+      write(KEYS.properties, [property, ...properties]);
+      return delay(property);
     },
 
     update: async (id: string, data: Partial<Property>): Promise<Property> => {
-      const backendData: Record<string, unknown> = {};
-      if (data.title) backendData.name = data.title;
-      if (data.price !== undefined) backendData.price = data.price;
-      if (data.category) backendData.category = data.category;
-      if (data.images?.[0]) backendData.image = data.images[0];
-      if (data.available !== undefined) backendData.available = data.available;
-
-      const response = await fetch(`${API_BASE}/api/inventory/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(backendData)
-      });
-
-      const item = await response.json();
-      return transformInventoryToProperty(item);
+      ensureSeed();
+      const properties = read<Property[]>(KEYS.properties, DEMO_PROPERTIES);
+      const idx = properties.findIndex((p) => p.id === id);
+      if (idx === -1) throw new Error("Property not found");
+      const updated: Property = {
+        ...properties[idx],
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      if (data.images?.[0]) updated.image = data.images[0];
+      properties[idx] = updated;
+      write(KEYS.properties, properties);
+      return delay(updated);
     },
 
     delete: async (id: string): Promise<void> => {
-      await fetch(`${API_BASE}/api/inventory/${id}`, { 
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-    }
+      ensureSeed();
+      write(
+        KEYS.properties,
+        read<Property[]>(KEYS.properties, DEMO_PROPERTIES).filter(
+          (p) => p.id !== id
+        )
+      );
+      await delay(undefined);
+    },
   },
 
-  // ============================================
-  // SALES REPS (Backend: Chefs)
-  // ============================================
   salesReps: {
     list: async (): Promise<SalesRep[]> => {
-      const response = await fetch(`${API_BASE}/api/sales-reps`, {
-        headers: getAuthHeaders()
-      });
-      const reps = await response.json();
-      return reps.map(transformChefToRep);
+      ensureSeed();
+      return delay(read<SalesRep[]>(KEYS.reps, DEMO_REPS));
     },
 
     create: async (data: Partial<SalesRep>): Promise<SalesRep> => {
-      const backendData = {
-        name: data.name,
-        phone: data.phone,
-        active: data.active ?? true
+      ensureSeed();
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const rep: SalesRep = {
+        id: uid("rep"),
+        name: data.name || "New Rep",
+        phone: data.phone || "",
+        email: data.email,
+        active: data.active ?? true,
+        commission: data.commission ?? 2,
+        monthlyTarget: data.monthlyTarget ?? 5,
+        leadsHandled: 0,
+        conversionRate: 0,
       };
-
-      const response = await fetch(`${API_BASE}/api/chefs`, {
-        method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(backendData)
-      });
-
-      const chef = await response.json();
-      return transformChefToRep(chef);
+      write(KEYS.reps, [rep, ...reps]);
+      return delay(rep);
     },
 
     update: async (id: string, data: Partial<SalesRep>): Promise<SalesRep> => {
-      const response = await fetch(`${API_BASE}/api/chefs/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(data)
-      });
-
-      const chef = await response.json();
-      return transformChefToRep(chef);
+      ensureSeed();
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const idx = reps.findIndex((r) => r.id === id);
+      if (idx === -1) throw new Error("Sales rep not found");
+      const updated = { ...reps[idx], ...data };
+      reps[idx] = updated;
+      write(KEYS.reps, reps);
+      return delay(updated);
     },
 
     delete: async (id: string): Promise<void> => {
-      await fetch(`${API_BASE}/api/chefs/${id}`, { 
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-    }
+      ensureSeed();
+      write(
+        KEYS.reps,
+        read<SalesRep[]>(KEYS.reps, DEMO_REPS).filter((r) => r.id !== id)
+      );
+      await delay(undefined);
+    },
   },
 
-  // ============================================
-  // REFERRAL DISCOUNTS (Backend: Coupons)
-  // ============================================
   referrals: {
     list: async (): Promise<ReferralDiscount[]> => {
-      const response = await fetch(`${API_BASE}/api/coupons`, {
-        headers: getAuthHeaders()
-      });
-      const coupons = await response.json();
-      return coupons.map(transformCouponToReferral);
+      ensureSeed();
+      return delay(read<ReferralDiscount[]>(KEYS.referrals, DEMO_REFERRALS));
     },
 
-    create: async (data: Partial<ReferralDiscount>): Promise<ReferralDiscount> => {
-      const response = await fetch(`${API_BASE}/api/coupons`, {
-        method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(data)
-      });
-
-      const coupon = await response.json();
-      return transformCouponToReferral(coupon);
+    create: async (
+      data: Partial<ReferralDiscount>
+    ): Promise<ReferralDiscount> => {
+      ensureSeed();
+      const list = read<ReferralDiscount[]>(KEYS.referrals, DEMO_REFERRALS);
+      const item: ReferralDiscount = {
+        id: uid("ref"),
+        code: data.code || "CODE",
+        discount: data.discount ?? 0,
+        type: data.type || "percentage",
+        active: data.active ?? true,
+        usageLimit: data.usageLimit ?? 100,
+        usedCount: 0,
+        expiresAt: data.expiresAt,
+      };
+      write(KEYS.referrals, [item, ...list]);
+      return delay(item);
     },
 
-    update: async (id: string, data: Partial<ReferralDiscount>): Promise<ReferralDiscount> => {
-      const response = await fetch(`${API_BASE}/api/coupons/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const coupon = await response.json();
-      return transformCouponToReferral(coupon);
+    update: async (
+      id: string,
+      data: Partial<ReferralDiscount>
+    ): Promise<ReferralDiscount> => {
+      ensureSeed();
+      const list = read<ReferralDiscount[]>(KEYS.referrals, DEMO_REFERRALS);
+      const idx = list.findIndex((r) => r.id === id);
+      if (idx === -1) throw new Error("Referral not found");
+      list[idx] = { ...list[idx], ...data };
+      write(KEYS.referrals, list);
+      return delay(list[idx]);
     },
 
     delete: async (id: string): Promise<void> => {
-      await fetch(`${API_BASE}/api/coupons/${id}`, { method: 'DELETE' });
-    }
+      ensureSeed();
+      write(
+        KEYS.referrals,
+        read<ReferralDiscount[]>(KEYS.referrals, DEMO_REFERRALS).filter(
+          (r) => r.id !== id
+        )
+      );
+      await delay(undefined);
+    },
   },
 
-  // ============================================
-  // WHATSAPP (Preserved Exactly)
-  // ============================================
   whatsapp: {
     status: async (): Promise<WhatsAppStatus> => {
-      const response = await fetch(`${API_BASE}/api/whatsapp/status`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
+      ensureSeed();
+      return delay(read<WhatsAppStatus>(KEYS.whatsapp, DEMO_WHATSAPP_STATUS));
     },
 
-    qr: async (): Promise<{ base64: string }> => {
-      const response = await fetch(`${API_BASE}/api/whatsapp/qr`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
-    },
+    qr: async (): Promise<{ base64: string }> =>
+      delay({
+        base64:
+          "data:image/svg+xml;base64," +
+          btoa(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="#fff" width="200" height="200"/><text x="100" y="100" text-anchor="middle" fill="#111" font-size="14">Demo QR</text></svg>`
+          ),
+      }),
 
     restart: async (): Promise<void> => {
-      await fetch(`${API_BASE}/api/whatsapp/restart`, { 
-        method: 'POST',
-        headers: getAuthHeaders()
+      ensureSeed();
+      write(KEYS.whatsapp, {
+        ...DEMO_WHATSAPP_STATUS,
+        connected: true,
+        status: "CONNECTED",
+        state: "CONNECTED",
       });
+      await delay(undefined);
     },
 
     logout: async (): Promise<void> => {
-      await fetch(`${API_BASE}/api/whatsapp/logout`, { 
-        method: 'POST',
-        headers: getAuthHeaders()
+      ensureSeed();
+      write(KEYS.whatsapp, {
+        connected: false,
+        connecting: false,
+        status: "DISCONNECTED",
+        state: "DISCONNECTED",
       });
+      await delay(undefined);
     },
 
-    getMetrics: async (): Promise<WhatsAppMetrics> => {
-      const response = await fetch(`${API_BASE}/api/whatsapp/metrics`, {
-        headers: getAuthHeaders()
-      });
-      return response.json();
-    }
+    getMetrics: async (): Promise<WhatsAppMetrics> =>
+      delay({
+        ...DEMO_WHATSAPP_METRICS,
+        timestamp: new Date().toISOString(),
+      }),
   },
 
-  // ============================================
-  // SETTINGS (Backend: Settings)
-  // ============================================
   settings: {
     get: async (): Promise<AgencySettings> => {
-      const response = await fetch(`${API_BASE}/api/settings`, {
-        headers: getAuthHeaders()
-      });
-      const settings = await response.json();
-      
-      return {
-        name: settings.name || 'GharBot Agency',
-        phone: settings.phone,
-        address: settings.address,
-        lat: settings.lat,
-        lng: settings.lng,
-        radius: settings.radius,
-        logo: settings.qrCodeImage
-      };
+      ensureSeed();
+      return delay(read<AgencySettings>(KEYS.settings, DEMO_SETTINGS));
     },
 
-    update: async (data: Partial<AgencySettings>): Promise<AgencySettings> => {
-      const backendData: Record<string, unknown> = {};
-      if (data.name) backendData.name = data.name;
-      if (data.phone) backendData.phone = data.phone;
-      if (data.address) backendData.address = data.address;
-      if (data.lat) backendData.lat = data.lat;
-      if (data.lng) backendData.lng = data.lng;
-      if (data.radius) backendData.radius = data.radius;
-      if (data.logo) backendData.qrCodeImage = data.logo;
-
-      const response = await fetch(`${API_BASE}/api/settings`, {
-        method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(backendData)
-      });
-
-      const settings = await response.json();
-      return {
-        name: settings.name,
-        phone: settings.phone,
-        address: settings.address,
-        lat: settings.lat,
-        lng: settings.lng,
-        radius: settings.radius,
-        logo: settings.qrCodeImage
-      };
-    }
+    update: async (
+      data: Partial<AgencySettings>
+    ): Promise<AgencySettings> => {
+      ensureSeed();
+      const current = read<AgencySettings>(KEYS.settings, DEMO_SETTINGS);
+      const next = { ...current, ...data };
+      write(KEYS.settings, next);
+      return delay(next);
+    },
   },
 
-  // ============================================
-  // DASHBOARD STATS
-  // ============================================
   stats: {
     get: async (): Promise<DashboardStats> => {
-      const response = await fetch(`${API_BASE}/api/stats`, {
-        headers: getAuthHeaders()
-      });
-      const stats = await response.json();
-      return transformStats(stats);
-    }
+      ensureSeed();
+      const leads = read<Lead[]>(KEYS.leads, DEMO_LEADS);
+      const properties = read<Property[]>(KEYS.properties, DEMO_PROPERTIES);
+      const reps = read<SalesRep[]>(KEYS.reps, DEMO_REPS);
+      const whatsapp = read<WhatsAppStatus>(KEYS.whatsapp, DEMO_WHATSAPP_STATUS);
+      return delay(computeDemoStats(leads, properties, reps, whatsapp));
+    },
   },
 
-  // ============================================
-  // COMPANY & DEALER (New)
-  // ============================================
   company: {
-    updateProfile: async (data: Record<string, unknown>): Promise<any> => {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE}/api/company/profile`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+    updateProfile: async (data: Record<string, unknown>) => {
+      const userRaw = localStorage.getItem("user_data");
+      const user: User = userRaw ? JSON.parse(userRaw) : { ...DEMO_USER };
+      const updated: User = {
+        ...user,
+        companyProfile: {
+          ...user.companyProfile,
+          companyName: (data.companyName as string) || user.companyProfile?.companyName,
+          companyType: (data.companyType as string) || user.companyProfile?.companyType,
+          botName: (data.botName as string) || user.companyProfile?.botName,
+          botTone: (data.botTone as string) || user.companyProfile?.botTone,
+          address: (data.address as string) || user.companyProfile?.address,
         },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update profile');
-      }
-      
-      return response.json();
-    }
-  }
+      };
+      localStorage.setItem("user_data", JSON.stringify(updated));
+      return delay(updated);
+    },
+  },
 };
 
 export default api;
+
+export { DEMO_USER };

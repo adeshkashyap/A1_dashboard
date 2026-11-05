@@ -64,7 +64,7 @@ const WhatsAppDemo = () => {
             <MessageCircle className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <p className="font-semibold text-sm">ApnaCodex AI</p>
+            <p className="font-semibold text-sm">EstateFlow AI</p>
             <p className="text-xs text-primary flex items-center gap-1">
               <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
               Online 24/7
@@ -183,13 +183,13 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
               <Link to="/auth">
                 <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6 glow-emerald animate-pulse-glow">
-                  Start 30-Day FREE Trial
+                  Enter Demo Dashboard
                 </Button>
               </Link>
               <Link to="/auth">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 border-primary/50 hover:bg-primary/10">
                   <Play className="w-5 h-5 mr-2" />
-                  Watch Live Demo
+                  Try Live Demo
                 </Button>
               </Link>
             </div>

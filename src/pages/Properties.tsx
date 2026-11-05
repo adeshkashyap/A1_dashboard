@@ -160,9 +160,9 @@ export default function Properties() {
         {!isLoading && !error && (
           <>
             {/* Filters Bar */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-1 items-center gap-3">
-                <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                <div className="relative flex-1 min-w-[160px] max-w-md">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search properties..."
@@ -172,7 +172,7 @@ export default function Properties() {
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[140px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -182,7 +182,7 @@ export default function Properties() {
                   </SelectContent>
                 </Select>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[140px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -195,8 +195,8 @@ export default function Properties() {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Button onClick={() => setShowCreateProperty(true)}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button onClick={() => setShowCreateProperty(true)} className="flex-1 sm:flex-none">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Property
                 </Button>
@@ -241,24 +241,29 @@ export default function Properties() {
                   >
                     {property.available ? "Available" : "Sold"}
                   </Badge>
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="secondary" className="h-8 w-8">
                       <MessageCircle className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="secondary" className="h-8 w-8">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-8 w-8"
+                      onClick={() => setEditingProperty(property)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="font-semibold text-foreground line-clamp-1">
+                  <div className="space-y-3 min-w-0">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
                         {property.title}
                       </h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        <span className="line-clamp-1">{property.location || 'Gurgaon'}</span>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1 min-w-0">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{property.location || 'Gurgaon'}</span>
                       </div>
                     </div>
 
@@ -333,7 +338,7 @@ export default function Properties() {
                             alt={property.title}
                             className="h-10 w-14 rounded object-cover"
                           />
-                          <span className="font-medium text-foreground">
+                          <span className="font-medium text-foreground truncate max-w-[180px] sm:max-w-[240px]">
                             {property.title}
                           </span>
                         </div>

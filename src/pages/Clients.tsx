@@ -158,8 +158,8 @@ export default function Clients() {
     <DashboardLayout title="Clients & Leads">
       <div className="space-y-6 animate-fade-in">
         {/* Search and Filters */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="relative flex-1 min-w-0 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search clients..."
@@ -168,7 +168,7 @@ export default function Clients() {
               className="pl-9"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Button
               variant={view === "kanban" ? "default" : "outline"}
               size="sm"
@@ -211,9 +211,9 @@ export default function Clients() {
                         className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                       >
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
+                          <div className="flex items-start justify-between mb-3 gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Avatar className="h-10 w-10 shrink-0">
                                 <AvatarFallback className="bg-primary/10 text-primary">
                                   {client.name
                                     .split(" ")
@@ -221,11 +221,11 @@ export default function Clients() {
                                     .join("")}
                                 </AvatarFallback>
                               </Avatar>
-                              <div>
-                                <h4 className="font-medium text-foreground text-sm">
+                              <div className="min-w-0">
+                                <h4 className="font-medium text-foreground text-sm truncate">
                                   {client.name}
                                 </h4>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground truncate">
                                   {client.source}
                                 </p>
                               </div>

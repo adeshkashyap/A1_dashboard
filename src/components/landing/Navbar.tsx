@@ -17,7 +17,7 @@ const Navbar = () => {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">ApnaCodex</span>
+              <span className="text-xl font-bold">EstateFlow</span>
             </Link>
             
             {/* Desktop nav */}
@@ -25,9 +25,9 @@ const Navbar = () => {
               <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Pricing
               </a>
-              <a href="https://apnacodex.com" target="_blank" rel="noopener" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Live App
-              </a>
+              <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Demo Dashboard
+              </Link>
               <Link to="/auth">
                 <Button variant="ghost" size="sm">
                   Login
@@ -35,7 +35,7 @@ const Navbar = () => {
               </Link>
               <Link to="/auth">
                 <Button size="sm" className="glow-emerald">
-                  Start Free Trial
+                  Try Demo
                 </Button>
               </Link>
             </div>
@@ -68,14 +68,13 @@ const Navbar = () => {
               >
                 Pricing
               </a>
-              <a 
-                href="https://apnacodex.com" 
-                target="_blank" 
-                rel="noopener" 
+              <Link
+                to="/auth"
                 className="block text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsOpen(false)}
               >
-                Live App
-              </a>
+                Demo Dashboard
+              </Link>
               <Link to="/auth" onClick={() => setIsOpen(false)}>
                 <Button variant="ghost" className="w-full">
                   Login
@@ -83,7 +82,7 @@ const Navbar = () => {
               </Link>
               <Link to="/auth" onClick={() => setIsOpen(false)}>
                 <Button className="w-full glow-emerald">
-                  Start Free Trial
+                  Try Demo
                 </Button>
               </Link>
             </div>

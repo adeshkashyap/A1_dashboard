@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 
-// Pages
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -18,64 +17,43 @@ import Automation from "./pages/Automation";
 import Team from "./pages/Team";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function HomeRoute() {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
-  
+
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <Landing />;
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check if onboarding is complete
-  const isSetup = user.companyProfile && user.companyProfile.companyName;
-  const isSubscribed = user.subscription && user.subscription.status === 'active';
-  const isAtOnboarding = window.location.pathname === "/onboarding";
-
-  console.log('🛡️ Route Guard Check:', {
-    path: window.location.pathname,
-    isSetup,
-    isSubscribed,
-    hasProfile: !!user.companyProfile,
-    companyName: user.companyProfile?.companyName,
-    subStatus: user.subscription?.status
-  });
-
-  // Redirect to onboarding if not fully setup or not subscribed
-  if ((!isSetup || !isSubscribed) && !isAtOnboarding) {
-    console.log('🚫 Redirecting to Onboarding (Setup/Sub missing)');
-    return <Navigate to="/onboarding" replace />;
-  }
-  
   return <>{children}</>;
 }
 
@@ -99,7 +77,7 @@ const App = () => (
               <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route path="/onboarding" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

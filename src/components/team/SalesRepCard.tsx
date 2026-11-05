@@ -14,9 +14,9 @@ export function SalesRepCard({ rep, onEdit, onDelete }: SalesRepCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">{rep.name}</h3>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-lg truncate">{rep.name}</h3>
             <Badge variant={rep.active ? "default" : "secondary"} className="mt-1">
               {rep.active ? "Active" : "Inactive"}
             </Badge>

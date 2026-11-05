@@ -44,28 +44,14 @@ export function CreateLeadModal({ open, onOpenChange }: CreateLeadModalProps) {
 
   const createLeadMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Transform to backend format
-      const leadData = {
-        customerName: data.buyerName,
-        customerPhone: data.buyerPhone,
-        customerEmail: data.buyerEmail,
-        items: data.requirements,
-        amount: parseFloat(data.budget),
-        address: data.location,
-        status: "pending", // Will be transformed to "NEW"
-      };
-
-      const response = await fetch("http://localhost:3001/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(leadData),
+      return api.leads.create({
+        buyerName: data.buyerName,
+        buyerPhone: data.buyerPhone,
+        requirements: data.requirements,
+        budget: parseFloat(data.budget) || 0,
+        location: data.location,
+        status: "NEW",
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create lead");
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({

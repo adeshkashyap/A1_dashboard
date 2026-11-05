@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useSocket } from "@/contexts/SocketContext";
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import api, { type Lead } from "@/lib/api-client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -76,47 +75,6 @@ export default function Leads() {
   });
 
   const allLeads = data?.pages.flat() || [];
-
-  // Audio for new lead notification
-  const playNotificationSound = () => {
-    try {
-      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-      audio.volume = 0.5;
-      audio.play();
-    } catch (e) {
-      console.warn("Audio playback failed", e);
-    }
-  };
-
-  // Real-time updates via Socket.io
-  const { socket } = useSocket();
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleNewLead = (newLead: Lead) => {
-      playNotificationSound();
-      toast({
-        title: "New Lead Created! ⚡",
-        description: `${newLead.buyerName} inquiring about properties.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      // Also update stats if they are visible
-      queryClient.invalidateQueries({ queryKey: ['stats'] });
-    };
-
-    const handleLeadUpdate = (updatedLead: Lead) => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-    };
-
-    socket.on('lead:created', handleNewLead);
-    socket.on('lead:updated', handleLeadUpdate);
-
-    return () => {
-      socket.off('lead:created', handleNewLead);
-      socket.off('lead:updated', handleLeadUpdate);
-    };
-  }, [socket, queryClient, toast]);
 
   // Fetch sales reps for filter
   const { data: salesReps } = useQuery({
@@ -242,10 +200,10 @@ export default function Leads() {
     <DashboardLayout title="Leads">
       <div className="space-y-6 animate-fade-in">
         {/* Header & Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 items-center gap-3">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 min-w-[160px] max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search leads..."
@@ -257,7 +215,7 @@ export default function Leads() {
 
             {/* Sales Rep Filter */}
             <Select value={repFilter} onValueChange={setRepFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All Reps" />
               </SelectTrigger>
               <SelectContent>
@@ -324,7 +282,7 @@ export default function Leads() {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[calc(100vh-280px)]">
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 snap-x snap-mandatory min-h-[420px] lg:min-h-[calc(100vh-280px)]">
               <KanbanColumn
                 title="New Leads"
                 status="NEW"
@@ -340,7 +298,7 @@ export default function Leads() {
                 onLeadClick={handleLeadClick}
               />
               <KanbanColumn
-                title="Visit Scheduled"
+                title="Visit"
                 status="VISIT"
                 leads={leadsByStatus.VISIT}
                 color="bg-orange-500"
@@ -377,13 +335,13 @@ export default function Leads() {
               filteredLeads.map((lead) => (
                 <div key={lead.id} onClick={() => handleLeadClick(lead)}>
                   {/* You can reuse LeadCard here or create a list item component */}
-                  <div className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold">{lead.buyerName}</h4>
-                        <p className="text-sm text-muted-foreground">{lead.requirements}</p>
+                  <div className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer min-w-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-semibold truncate">{lead.buyerName}</h4>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{lead.requirements}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <p className="font-semibold text-primary">
                           ₹{(lead.budget / 100000).toFixed(1)}L
                         </p>

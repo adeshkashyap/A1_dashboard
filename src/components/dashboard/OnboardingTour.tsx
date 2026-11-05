@@ -6,8 +6,8 @@ import { X, ArrowRight, Sparkles, Building2, Zap, MessageSquare } from "lucide-r
 
 const steps = [
   {
-    title: "Welcome to ApnaCodex! 🎊",
-    description: "Your agency is now equipped with elite-level CRM tools. Let's show you around your new command center.",
+    title: "Welcome to EstateFlow!",
+    description: "Explore this real-estate CRM UI demo. Data is local — add leads and properties freely.",
     icon: <Sparkles className="h-8 w-8 text-yellow-500" />
   },
   {
@@ -62,10 +62,10 @@ export function OnboardingTour() {
             exit={{ scale: 0.9, opacity: 0 }}
             className="w-full max-w-lg"
           >
-            <Card className="relative p-10 rounded-[40px] shadow-3xl border-0 overflow-hidden">
-              <div className="absolute top-0 right-0 p-6">
-                <button onClick={handleComplete} className="text-slate-400 hover:text-slate-600 transition-colors">
-                  <X className="h-6 w-6" />
+            <Card className="relative p-6 sm:p-10 rounded-3xl sm:rounded-[40px] shadow-3xl border-0 overflow-hidden bg-card">
+              <div className="absolute top-0 right-0 p-4 sm:p-6">
+                <button onClick={handleComplete} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
@@ -74,7 +74,7 @@ export function OnboardingTour() {
                   key={currentStep}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="mb-8 p-6 bg-slate-50 rounded-[32px]"
+                  className="mb-6 sm:mb-8 p-4 sm:p-6 bg-muted rounded-2xl sm:rounded-[32px]"
                 >
                   {steps[currentStep].icon}
                 </motion.div>
@@ -83,7 +83,7 @@ export function OnboardingTour() {
                   key={`title-${currentStep}`}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="text-3xl font-black text-slate-900 mb-4"
+                  className="text-2xl sm:text-3xl font-black text-foreground mb-3 sm:mb-4 px-2"
                 >
                   {steps[currentStep].title}
                 </motion.h2>
@@ -92,30 +92,30 @@ export function OnboardingTour() {
                   key={`desc-${currentStep}`}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="text-lg text-slate-500 mb-10 leading-relaxed"
+                  className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed px-1"
                 >
                   {steps[currentStep].description}
                 </motion.p>
 
-                <div className="flex items-center gap-2 mb-8">
+                <div className="flex items-center gap-2 mb-6 sm:mb-8">
                   {steps.map((_, i) => (
                     <div 
                       key={i} 
-                      className={`h-2 rounded-full transition-all duration-300 ${i === currentStep ? "w-8 bg-primary" : "w-2 bg-slate-200"}`} 
+                      className={`h-2 rounded-full transition-all duration-300 ${i === currentStep ? "w-8 bg-primary" : "w-2 bg-muted"}`} 
                     />
                   ))}
                 </div>
 
                 <Button 
                   onClick={handleNext} 
-                  className="w-full h-16 rounded-[24px] text-xl font-black bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100"
+                  className="w-full h-12 sm:h-14 rounded-2xl text-base sm:text-lg font-bold"
                 >
-                  {currentStep === steps.length - 1 ? "Start Closing Deals" : "Next Insight"}
-                  <ArrowRight className="ml-2 h-6 w-6" />
+                  {currentStep === steps.length - 1 ? "Start Exploring" : "Next Insight"}
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 
                 {currentStep === 0 && (
-                  <button onClick={handleComplete} className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600">
+                  <button onClick={handleComplete} className="mt-4 text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground">
                     Skip Tour
                   </button>
                 )}

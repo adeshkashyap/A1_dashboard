@@ -26,17 +26,17 @@ export function KPICard({
 
   return (
     <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3 min-w-0">
+          <div className="space-y-2 sm:space-y-3 min-w-0 flex-1">
+            <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-foreground truncate">{value}</p>
             {change !== undefined && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 {isPositive ? (
-                  <TrendingUp className="h-4 w-4 text-status-available" />
+                  <TrendingUp className="h-4 w-4 shrink-0 text-status-available" />
                 ) : (
-                  <TrendingDown className="h-4 w-4 text-destructive" />
+                  <TrendingDown className="h-4 w-4 shrink-0 text-destructive" />
                 )}
                 <span
                   className={cn(
@@ -47,11 +47,11 @@ export function KPICard({
                   {isPositive ? "+" : ""}
                   {change}%
                 </span>
-                <span className="text-sm text-muted-foreground">{changeLabel}</span>
+                <span className="text-sm text-muted-foreground truncate">{changeLabel}</span>
               </div>
             )}
           </div>
-          <div className={cn("p-3 rounded-xl", iconBgColor)}>
+          <div className={cn("p-3 rounded-xl shrink-0", iconBgColor)}>
             <div className={iconColor}>{icon}</div>
           </div>
         </div>

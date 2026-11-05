@@ -51,7 +51,7 @@ const SolutionSection = () => {
           </div>
           
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-6">
-            ApnaCodex{" "}
+            EstateFlow{" "}
             <span className="text-gradient">Fixes Everything</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -89,7 +89,7 @@ const SolutionSection = () => {
           viewport={{ once: true }}
           className="text-center"
         >
-          <Link to="/login">
+          <Link to="/auth">
             <Button size="lg" className="text-lg px-8 py-6 glow-emerald group">
               See Live Demo
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
